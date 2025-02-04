@@ -1,0 +1,13 @@
+form action="entries" method="get" 
+    input type="submit" Value="title" name="title" 
+    input type="submit" Value="date" name="date"
+    input type="submit" Value="creator" name="creator"
+    input type="submit" Value="genre" name="genre"
+    input type="submit" Value="type" name="type"
+    input type="submit" Value="ASC" name="ASC"
+    input type="submit" Value="DESC" name="DESC"
+
+h2 All entries
+
+- entries.each do |entry|
+    p = entry["title"]
