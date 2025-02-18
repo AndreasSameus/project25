@@ -4,11 +4,13 @@ require 'sqlite3'
 require 'sinatra/reloader'
 require 'bcrypt'
 
+enable :sessions
+
 get('/')  do
     slim(:home)
 end 
 
-get("/entries") do
+post("/entries") do
     title = params[:title]
     genre = params[:genre]
     type = params[:type]
@@ -17,30 +19,68 @@ get("/entries") do
     ASC = params[:ASC]
     DESC = params[:DESC]
 
-    if genre
-        main_order = genre
-    elsif type
-        main_order = type
-    elsif creator
-        main_order = creator
-    elsif date
-        main_order = date
-    else
-        main_order = "title"
+    main_order = [title, genre, type, creator, date]
+    order = [ASC, DESC]
+
+    for i in main_order
+        if ["title","genre","type","creator","date"].include?(i)
+            session[:main_order] = i
+        end
     end
 
-    if DESC
-        hej = DESC
-    else
-        hej = "ASC"
+    for i in order
+        if ["ASC","DESC"].include?(i)
+            session[:order] = i
+        end
     end
-    
-    p main_order
-    p hej
+
+    if ! ["ASC","DESC"].include?(session[:order])
+        session[:order] = "ASC"
+    end
+
+    if ! ["title","genre","type","creator","date"].include?(session[:main_order])
+        session[:main_order] = "title"
+    end
+
+    redirect("/entries")
+end
+
+get("/entries") do  
+    main_order = session[:main_order]
+    order = session[:order]
 
     db = SQLite3::Database.new("db/Sameusboxd.db")
     db.results_as_hash = true
-    result = db.execute("SELECT * FROM entries ORDER BY ? ?",[main_order,hej])
+    if main_order && order
+        result = db.execute("SELECT * FROM entries ORDER BY #{main_order} #{order}")
+    else 
+        result = db.execute("SELECT * FROM entries")
+    end
     slim(:"entries",locals:{entries:result})
-  
+end
+
+get("/create") do
+    slim(:add)
+end
+
+post("/create") do
+    entryname = params[:entryname]
+    creator = params[:creator]
+    type = params[:type]
+    genre = params[:genre]
+    date = params[:date]
+    img = params[:img]
+
+    db = SQLite3::Database.new("db/Sameusboxd.db")
+    db.results_as_hash = true
+    if params[:img] && params[:img][:filename]
+        filename = params[:img][:filename]
+        file = params[:img][:tempfile]
+        path = "./public/img/#{filename}"
+        File.open(path, 'wb') do |f|
+            f.write(file.read)
+        end
+    end
+    result = db.execute("INSERT INTO entries (title,creator,type,genre,date,img) VALUES(?,?,?,?,?,?)",[entryname,creator,type,genre,date,filename])
+    redirect("/create")
 end
