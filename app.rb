@@ -69,13 +69,13 @@ post("/create") do
     type = params[:type]
     genre = params[:genre]
     date = params[:date]
-    img = params[:img]
+    img = params[:file]
 
     db = SQLite3::Database.new("db/Sameusboxd.db")
     db.results_as_hash = true
-    if params[:img] && params[:img][:filename]
-        filename = params[:img][:filename]
-        file = params[:img][:tempfile]
+    if img && img[:filename]
+        filename = img[:filename]
+        file = img[:tempfile]
         path = "./public/img/#{filename}"
         File.open(path, 'wb') do |f|
             f.write(file.read)
