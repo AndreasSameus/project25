@@ -10,6 +10,46 @@ get('/')  do
     slim(:home)
 end 
 
+get('/register') do
+    slim(:register)
+end
+
+get("/showlogin") do
+    slim(:login)
+end
+
+post("/login") do
+    username = params[:username]
+    password = params[:password]
+    db = SQLite3::Database.new("db/Sameusboxd.db")
+    db.results_as_hash = true
+    result = db.execute("SELECT * FROM users WHERE username = ?",username).first
+    pwdigest = result["password"]
+    user = result["username"]
+  
+    if BCrypt::Password.new(pwdigest) == password
+      session[:user] = user
+      redirect("/")
+    else
+      "Wrong password"
+    end
+end
+
+post("/users/new") do
+    username = params[:username]
+    password = params[:password]
+    password_confirm = params[:password_confirm]
+  
+    if password == password_confirm
+      password_digest = BCrypt::Password.create(password)
+      db = SQLite3::Database.new("db/Sameusboxd.db")
+      db.execute("INSERT INTO users (username,password,admin_lvl) VALUES (?,?,?)", [username,password_digest,1])
+      redirect("/")
+    else
+      "The passwords didnt match"
+    end
+end
+
 post("/entries") do
     title = params[:title]
     genre = params[:genre]
@@ -57,6 +97,13 @@ get("/entries") do
         result = db.execute("SELECT * FROM entries")
     end
     slim(:"entries",locals:{entries:result})
+end
+
+get("/entries/:id") do
+    db = SQLite3::Database.new("db/Sameusboxd.db")
+    db.results_as_hash = true
+    result = db.execute("SELECT * FROM entries WHERE id = ?",params[:id]).first
+    slim(:"entry",locals:{entry:result})
 end
 
 get("/create") do
