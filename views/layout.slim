@@ -11,7 +11,6 @@ html lang="en"
         a href="/home" Home 
         a href="/entries" Entries 
         a href="/create" Add 
-        a href="/register" Sign In
-
-        p = session[:user]
+        a href="/register" Sign In 
+        a href="/profile/#{session[:user]}" #{session[:user]}
     ==yield

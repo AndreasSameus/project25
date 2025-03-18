@@ -1,7 +1,28 @@
 p = entry["title"]
-p = "img/#{entry['img']}"
-img class="image" src="img/#{entry["img"]}" alt="entry_img" 
-p = entry["date"]
-p = entry["type"]
-p = entry["genre"]
-p = entry["creator"]
+img class="image" src="../img/#{entry["img"]}" alt="entry_img" 
+p= "Release Date : #{entry["date"]}"
+p = "Media : #{entry["type"]}"
+p = "Genre : #{entry["genre"]}"
+- if entry["type"] == "movie"
+    -@creator = "Director :"
+- elsif entry["type"] == "book"
+     -@creator = "Author :"
+- elsif entry["type"] == "song"
+     -@creator = "Artist :"
+p = "#{@creator} #{entry["creator"]}"
+
+
+form action="rate" method="post"
+    input type="hidden" name="entry_id" value="#{entry["id"]}"
+    input type="radio" name="rating" value="1"
+    input type="radio" name="rating" value="2"
+    input type="radio" name="rating" value="3"
+    input type="radio" name="rating" value="4"
+    input type="radio" name="rating" value="5"
+    input type="radio" name="rating" value="6"
+    input type="radio" name="rating" value="7"
+    input type="radio" name="rating" value="8"
+    input type="radio" name="rating" value="9"
+    input type="radio" name="rating" value="10"
+    input type="submit" value="Rate"
+
