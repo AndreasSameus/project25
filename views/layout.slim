@@ -8,9 +8,9 @@ html lang="en"
     title Document
   body
     nav
-        a href="/home" Home 
-        a href="/entries" Entries 
-        a href="/create" Add 
-        a href="/register" Sign In 
-        a href="/profile/#{session[:user]}" #{session[:user]}
+        a class="link" href="/home" Home 
+        a class="link" href="/entries" Entries 
+        a class="link" href="/create" Add 
+        a class="link" href="/register" Sign Up 
+        a class="link" href="/profile/#{session[:user]}" #{session[:user]}
     ==yield

@@ -103,6 +103,16 @@ get("/entries/:id") do
     db = SQLite3::Database.new("db/Sameusboxd.db")
     db.results_as_hash = true
     result = db.execute("SELECT * FROM entries WHERE id = ?",params[:id]).first
+    rating = db.execute("SELECT AVG(rating) FROM user_entry_rel WHERE entry_id = ?",params[:id]).first
+    count = db.execute("SELECT COUNT(rating) FROM user_entry_rel WHERE entry_id = ?",params[:id]).first
+    if rating["AVG(rating)"] == nil
+        result.merge!("rating" => "?")
+        result.merge!("count"  => "0")
+    else
+        result.merge!("rating" => "#{rating["AVG(rating)"].round(2)}")
+        result.merge!("count"  => "#{count["COUNT(rating)"]}")
+    end
+    p result
     slim(:"entry",locals:{entry:result})
 end
 
@@ -135,20 +145,38 @@ end
 get("/profile/:username") do
     db = SQLite3::Database.new("db/Sameusboxd.db")
     db.results_as_hash = true
-    result = db.execute("SELECT id FROM users WHERE username = ?",params[:username])
-    p result
+    result = db.execute("SELECT id FROM users WHERE username = ?",params[:username]).first
+    avg_rating = db.execute("SELECT AVG(rating) FROM user_entry_rel WHERE user_id = ?",result["id"]).first
+    user_entries = db.execute("SELECT entry_id FROM user_entry_rel WHERE user_id = ?",result["id"])
+    array = []
+    for i in user_entries
+        array << i["entry_id"]
+    end
+    typearray = []
+    for i in array
+        type = db.execute(" SELECT type FROM entries WHERE id = ?",i).first
+        typearray << type["type"]
+    end
+    result.merge!("rating" => "#{avg_rating["AVG(rating)"].round(2)}")
+    result.merge!(typearray.tally)
     slim(:"profile",locals:{profile:result})
 end
 
 post("/entries/rate") do
     db = SQLite3::Database.new("db/Sameusboxd.db")
     db.results_as_hash = true
-    user_id = db.execute("SELECT id FROM users WHERE username = ?",session[:user]).first["id"]
+
+    user_id = db.execute("SELECT id FROM users WHERE username = ?", session[:user]).first["id"]
     entry_id = params[:entry_id].to_i
     rating = params[:rating].to_i
-    p rating
-    p user_id
-    p entry_id
-    db.execute("INSERT INTO user_entry_rel (user_id,entry_id,rating) VALUES (?,?,?)",[user_id,entry_id,rating])
+
+    existing = db.execute("SELECT * FROM user_entry_rel WHERE user_id = ? AND entry_id = ?", [user_id, entry_id])
+
+    if !existing.empty?
+        db.execute("UPDATE user_entry_rel SET rating = ? WHERE user_id = ? AND entry_id = ?", [rating, user_id, entry_id])
+    else
+        db.execute("INSERT INTO user_entry_rel (user_id, entry_id, rating) VALUES (?, ?, ?)", [user_id, entry_id, rating])
+    end
+
     redirect("/entries/#{params[:entry_id]}")
 end

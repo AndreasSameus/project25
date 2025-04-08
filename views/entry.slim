@@ -10,6 +10,9 @@ p = "Genre : #{entry["genre"]}"
 - elsif entry["type"] == "song"
      -@creator = "Artist :"
 p = "#{@creator} #{entry["creator"]}"
+- if entry["rating"] != ""
+    p = "Average Rating: #{entry["rating"]}/10"
+p = "Ratings :  #{entry["count"]}"
 
 
 form action="rate" method="post"
