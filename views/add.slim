@@ -9,3 +9,30 @@ form action="/create" method="post" enctype="multipart/form-data"
     input type="text" name="genre" placeholder="Enter genre"
     input type="file" name="file"
     input type="submit" value="Upload"
+
+-if add[1]["admin_lvl"] == 0
+    hr
+    p Pending
+    hr
+    -for entry in add[0] do
+        img class="image" src="img/#{entry["img"]}" alt="entry_img"
+        p = entry
+        form action="/accept" method="post" enctype="multipart/form-data"
+            input type="hidden" name="entryname" value="#{entry["title"]}"
+            input type="hidden" name="creator" value="#{entry["creator"]}"
+            input type="hidden" name="type" value="#{entry["type"]}"
+            input type="hidden" name="date" value="#{entry["date"]}"
+            input type="hidden" name="genre" value="#{entry["genre"]}"
+            input type="hidden" name="file" value="#{entry["img"]}"
+            input type="hidden" name="request_id" value="#{entry["id"]}"
+            input type="submit" value="Accept"
+        form action="/delete" method="post" enctype="multipart/form-data"
+            input type="hidden" name="entryname" value="#{entry["title"]}"
+            input type="hidden" name="creator" value="#{entry["creator"]}"
+            input type="hidden" name="type" value="#{entry["type"]}"
+            input type="hidden" name="date" value="#{entry["date"]}"
+            input type="hidden" name="genre" value="#{entry["genre"]}"
+            input type="hidden" name="file" value="#{entry["img"]}"
+            input type="hidden" name="request_id" value="#{entry["id"]}"
+            input type="submit" value="Delete"
+        hr

@@ -117,7 +117,11 @@ get("/entries/:id") do
 end
 
 get("/create") do
-    slim(:add)
+    db = SQLite3::Database.new("db/Sameusboxd.db")
+    db.results_as_hash = true
+    admin_lvl = db.execute("SELECT admin_lvl FROM users WHERE username = ?",session[:user]).first
+    result = db.execute("SELECT * FROM pending")
+    slim(:"add",locals:{add:[result,admin_lvl]})
 end
 
 post("/create") do
@@ -130,6 +134,7 @@ post("/create") do
 
     db = SQLite3::Database.new("db/Sameusboxd.db")
     db.results_as_hash = true
+    admin_lvl = db.execute("SELECT admin_lvl FROM users WHERE username = ?",session[:user]).first
     if img && img[:filename]
         filename = img[:filename]
         file = img[:tempfile]
@@ -138,7 +143,36 @@ post("/create") do
             f.write(file.read)
         end
     end
-    result = db.execute("INSERT INTO entries (title,creator,type,genre,date,img) VALUES(?,?,?,?,?,?)",[entryname,creator,type,genre,date,filename])
+    if admin_lvl["admin_lvl"] == 0
+        result = db.execute("INSERT INTO entries (title,creator,type,genre,date,img) VALUES(?,?,?,?,?,?)",[entryname,creator,type,genre,date,filename])
+    else
+        result = db.execute("INSERT INTO pending (title,creator,type,genre,date,img) VALUES(?,?,?,?,?,?)",[entryname,creator,type,genre,date,filename])
+    end
+
+    redirect("/create")
+end
+
+post("/accept") do
+    request_id = params[:request_id]
+    entryname = params[:entryname]
+    creator = params[:creator]
+    type = params[:type]
+    genre = params[:genre]
+    date = params[:date]
+    img = params[:file]
+    db = SQLite3::Database.new("db/Sameusboxd.db")
+    db.results_as_hash = true
+    result = db.execute("INSERT INTO entries (title,creator,type,genre,date,img) VALUES(?,?,?,?,?,?)",[entryname,creator,type,genre,date,img])
+    result = db.execute("DELETE FROM pending where id = ?",request_id)
+    redirect("/create")
+end
+
+post("/delete") do 
+    request_id = params[:request_id]
+    db = SQLite3::Database.new("db/Sameusboxd.db")
+    db.results_as_hash = true
+    admin_lvl = db.execute("SELECT admin_lvl FROM users WHERE username = ?",session[:user]).first
+    result = db.execute("DELETE FROM pending where id = ?",request_id)
     redirect("/create")
 end
 
@@ -154,7 +188,7 @@ get("/profile/:username") do
     end
     typearray = []
     for i in array
-        type = db.execute(" SELECT type FROM entries WHERE id = ?",i).first
+        type = db.execute("SELECT type FROM entries WHERE id = ?",i).first
         typearray << type["type"]
     end
     result.merge!("rating" => "#{avg_rating["AVG(rating)"].round(2)}")
