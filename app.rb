@@ -4,10 +4,40 @@ require 'sqlite3'
 require 'sinatra/reloader'
 require 'bcrypt'
 require_relative("./model/module.rb")
-helpers MyAppHelpers
 enable :sessions
 
 include Model
+
+# Helper functions related to the current user's session
+# @see #logged_in?
+# @see #current_user
+# @see #current_user_id
+# @see #current_admin_lvl
+helpers do
+    # Checks if the user is logged in
+    # @return [Boolean] Returns `true` if a user is logged in, otherwise `false`
+    def logged_in?
+      !!session[:user]
+    end
+  
+    # Retrieves the current logged-in user's username
+    # @return [String, nil] Returns the username of the current logged-in user or `nil` if not logged in
+    def current_user
+      session[:user]
+    end
+  
+    # Retrieves the current logged-in user's ID
+    # @return [Integer, nil] Returns the user ID of the current logged-in user or `nil` if not logged in
+    def current_user_id
+      session[:user_id]
+    end
+  
+    # Retrieves the current logged-in user's admin level
+    # @return [Integer, nil] Returns the admin level of the current logged-in user or `nil` if not logged in
+    def current_admin_lvl
+      session[:admin_lvl]
+    end
+end
 
 # Before filter to ensure user is logged in to access restricted paths.
 # @see #logged_in?

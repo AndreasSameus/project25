@@ -1,22 +1,5 @@
 module Model
 
-  module MyAppHelpers
-    def logged_in?
-      !!session[:user]
-    end
-
-    def current_user
-      session[:user]
-    end
-
-    def current_user_id
-      session[:user_id]
-    end
-
-    def current_admin_lvl
-      session[:admin_lvl]
-    end
-  end
 
   def get_database
     db = SQLite3::Database.new("db/Sameusboxd.db")
