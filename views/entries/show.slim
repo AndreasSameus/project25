@@ -14,7 +14,6 @@ p = "#{@creator} #{entry["creator"]}"
     p = "Average Rating: #{entry["rating"]}/10"
 p = "Ratings :  #{entry["count"]}"
 
-
 form action="rate" method="post"
     input type="hidden" name="entry_id" value="#{entry["id"]}"
     input type="radio" name="rating" value="1"
@@ -28,4 +27,9 @@ form action="rate" method="post"
     input type="radio" name="rating" value="9"
     input type="radio" name="rating" value="10"
     input type="submit" value="Rate"
+
+-if current_admin_lvl() == 0
+    form action="delete" method="post"
+        input type="hidden" name="entry_id" value="#{entry["id"]}"
+        input type="submit" value="Delete"
 
